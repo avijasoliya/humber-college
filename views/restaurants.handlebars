@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Search</title>
+    <link rel="stylesheet" href="../public/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Restaurant Add</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+            </ul>
+        </nav>
+        <form action="/api/restaurants" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" required>
+            <label for="cuisine">Cuisine:</label>
+            <input type="text" name="cuisine" id="cuisine" required>
+            <label for="borough">Borough:</label>
+            <input type="text" name="borough" id="borough" required>
+            <button type="submit">Add Restaurant</button>
+        </form>
+        <br>
+        <h1>Restaurant List</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Cuisine</th>
+                    <th>Borough</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each restaurants}}
+                <tr>
+                    <td>{{this.name}}</td>
+                    <td>{{this.cuisine}}</td>
+                    <td>{{this.borough}}</td>
+                    <td>
+                        <button onclick="updateRestaurant('{{this._id}}')">Update</button>
+                        <button onclick="deleteRestaurant('{{this._id}}')">Delete</button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function updateRestaurant(restaurantId) {
+            try {
+                // Fetch the current data of the restaurant to be updated
+                const response = await fetch(`/api/restaurants/${restaurantId}`);
+                const restaurantData = await response.json();
+                if (!response.ok) {
+                    throw new Error(restaurantData.error || 'Failed to fetch restaurant data');
+                }
+
+                // Open a form or modal to let users input the updated data
+                // For simplicity, we'll use window.prompt to demonstrate
+                const updatedName = window.prompt('Enter updated name:', restaurantData.name);
+                const updatedCuisine = window.prompt('Enter updated cuisine:', restaurantData.cuisine);
+                const updatedBorough = window.prompt('Enter updated borough:', restaurantData.borough);
+
+                // Perform the update operation with the provided data
+                const updateResponse = await fetch(`/api/restaurants/${restaurantId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: updatedName,
+                        cuisine: updatedCuisine,
+                        borough: updatedBorough
+                    })
+                });
+                const updateData = await updateResponse.json();
+                if (updateResponse.ok) {
+                    alert('Restaurant updated successfully!');
+                    // Optionally, update the UI to reflect the changes
+                } else {
+                    throw new Error(updateData.error || 'Failed to update restaurant');
+                }
+            } catch (error) {
+                console.error('Error updating restaurant:', error);
+                alert('Failed to update restaurant. Please try again.');
+            }
+        }
+
+        async function deleteRestaurant(restaurantId) {
+            try {
+                const response = await fetch(`/api/restaurants/${restaurantId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Restaurant deleted successfully!');
+                    // Optionally, update the UI to remove the deleted restaurant
+                } else {
+                    alert(data.error || 'Failed to delete restaurant');
+                }
+            } catch (error) {
+                console.error('Error deleting restaurant:', error);
+                alert('Failed to delete restaurant. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
